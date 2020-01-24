@@ -11,6 +11,8 @@
 #include "wasm_export.h"
 #include "aot_export.h"
 
+#include <time.h>
+
 static int
 print_help()
 {
@@ -139,6 +141,8 @@ main(int argc, char *argv[])
       return -1;
   }
 
+  struct timespec loadStart, loadEnd;
+  clock_gettime(CLOCK_REALTIME, &loadStart);
   /* initialize runtime environment */
   if (!wasm_runtime_init())
     goto fail1;
@@ -157,6 +161,14 @@ main(int argc, char *argv[])
     goto fail3;
   }
 
+  clock_gettime(CLOCK_REALTIME, &loadEnd);
+  double accum_load = ( loadEnd.tv_sec - loadStart.tv_sec )
+      + ( loadEnd.tv_nsec - loadStart.tv_nsec )
+      / 1E9;
+  bh_printf("Runtime load time: %1fs\n", accum_load);
+
+  struct timespec compileStart, compileEnd;
+  clock_gettime(CLOCK_REALTIME, &compileStart);
   if (!(comp_data = aot_create_comp_data(wasm_module))) {
     bh_printf("%s\n", aot_get_last_error());
     goto fail4;
@@ -172,6 +184,13 @@ main(int argc, char *argv[])
     bh_printf("%s\n", aot_get_last_error());
     goto fail6;
   }
+  clock_gettime(CLOCK_REALTIME, &compileEnd);
+
+  double accum_comp = ( compileEnd.tv_sec - compileStart.tv_sec )
+      + ( compileEnd.tv_nsec - compileStart.tv_nsec )
+      / 1E9;
+ 
+  bh_printf("Compilation time: %1fs\n", accum_comp);
 
   switch (option.output_format) {
       case AOT_LLVMIR_UNOPT_FILE:

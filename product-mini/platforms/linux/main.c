@@ -14,6 +14,8 @@
 #include "bh_memory.h"
 #include "wasm_export.h"
 
+#include <time.h>
+
 static int app_argc;
 static char **app_argv;
 
@@ -55,8 +57,17 @@ app_instance_main(wasm_module_inst_t module_inst)
 static void*
 app_instance_func(wasm_module_inst_t module_inst, const char *func_name)
 {
+    struct timespec requestStart, requestEnd;
+    clock_gettime(CLOCK_REALTIME, &requestStart);
+
     wasm_application_execute_func(module_inst, func_name, app_argc - 1,
                                   app_argv + 1);
+
+    clock_gettime(CLOCK_REALTIME, &requestEnd);
+    double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
+      + ( requestEnd.tv_nsec - requestStart.tv_nsec )
+      / 1E9;
+    bh_printf( "execution time: %1fs\n", accum );
     /* The result of wasm function or exception info was output inside
        wasm_application_execute_func(), here we don't output them again. */
     return NULL;
@@ -267,6 +278,8 @@ int main(int argc, char *argv[])
                                argv, argc);
 #endif
 
+    struct timespec requestStart, requestEnd;
+    clock_gettime(CLOCK_REALTIME, &requestStart);
     /* instantiate the module */
     if (!(wasm_module_inst = wasm_runtime_instantiate(wasm_module,
                                                       64 * 1024, /* stack size */
@@ -276,6 +289,11 @@ int main(int argc, char *argv[])
         bh_printf("%s\n", error_buf);
         goto fail4;
     }
+    clock_gettime(CLOCK_REALTIME, &requestEnd);
+    double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
+      + ( requestEnd.tv_nsec - requestStart.tv_nsec )
+      / 1E9;
+    bh_printf( "Instantiation time: %1fs\n", accum );
 
     if (is_repl_mode)
         app_instance_repl(wasm_module_inst);
