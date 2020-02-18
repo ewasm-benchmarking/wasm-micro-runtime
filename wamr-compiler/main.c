@@ -168,7 +168,7 @@ main(int argc, char *argv[])
   }
   clock_gettime(CLOCK_REALTIME, &requestEnd);
 
-  double accum = ( requestEnd.tv_sec - requestStart.tv_sec )
+  double accum_comp = ( requestEnd.tv_sec - requestStart.tv_sec )
       + ( requestEnd.tv_nsec - requestStart.tv_nsec )
       / 1E9;
  
