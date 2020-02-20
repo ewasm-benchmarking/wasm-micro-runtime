@@ -173,7 +173,7 @@ main(int argc, char *argv[])
       + ( compileEnd.tv_nsec - compileStart.tv_nsec )
       / 1E9;
  
-  bh_printf("Compilation time: %1fs\n", accum);
+  bh_printf("Compilation time: %1fs\n", accum_comp);
 
   switch (option.output_format) {
       case AOT_LLVMIR_UNOPT_FILE:
